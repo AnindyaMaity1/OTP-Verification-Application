@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OTP Verification System</title>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            margin: 0;
+            background: #ffffff;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            background: linear-gradient(135deg, #fef5d4, #e0b6ff);
+            padding: 2.5rem;
+            border-radius: 0;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+            width: 380px;
+            text-align: center;
+            transition: all 0.3s ease-in-out;
+        }
+
+        h2 {
+            color: #6b00b6;
+            margin-bottom: 1.2rem;
+            font-weight: 600;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0 15px;
+            border: 1.5px solid #aaa;
+            border-radius: 0;
+            font-size: 1rem;
+            transition: border 0.3s;
+            background-color: #ffffffb5;
+        }
+
+        input:focus {
+            border-color: #6b00b6;
+            outline: none;
+        }
+
+        button {
+            background: #6b00b6;
+            color: white;
+            border: none;
+            padding: 12px 18px;
+            font-size: 1rem;
+            border-radius: 0;
+            cursor: pointer;
+            width: 100%;
+            transition: background 0.3s ease;
+            font-weight: 500;
+        }
+
+        button:hover {
+            background: #520089;
+        }
+
+        .status {
+            margin-top: 15px;
+            font-size: 0.9rem;
+        }
+
+        .success { color: #0ba360; }
+        .error { color: #d9534f; }
+
+        .verified-icon {
+            font-size: 3rem;
+            color: #0ba360;
+            display: none;
+            margin-top: 1rem;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.8s ease-in-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        #timer {
+            font-weight: 600;
+            color: #ff5e00;
+            margin-top: 10px;
+        }
+
+        #resendBtn {
+            background: #f9f9f9;
+            color: #333;
+            border: 1px solid #ccc;
+            margin-top: 10px;
+        }
+
+        #resendBtn:hover {
+            background: #ececec;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container" id="otp-container">
+        <h2><i class="fa-solid fa-lock"></i> OTP Verification</h2>
+
+        <div id="step1">
+            <p>Enter your phone number:</p>
+            <input type="text" id="phoneNumber" placeholder="+91XXXXXXXXXX">
+            <button onclick="sendCode()">Send OTP</button>
+        </div>
+
+        <div id="step2" style="display: none;">
+            <p>Enter the OTP sent to your phone:</p>
+            <input type="text" id="otpCode" placeholder="Enter OTP">
+            <button onclick="verifyCode()">Verify OTP</button>
+            <div id="timer"></div>
+            <button id="resendBtn" onclick="resendOTP()" style="display:none;">Resend OTP</button>
+        </div>
+
+        <div id="verified" class="verified-icon">
+            <i class="fa-solid fa-circle-check"></i>
+            <p>Verification Successful!</p>
+        </div>
+
+        <div id="status" class="status"></div>
+    </div>
+
+    <script>
+        const API_BASE = "http://127.0.0.1:5000/api";
+        const statusDiv = document.getElementById("status");
+        const timerDiv = document.getElementById("timer");
+        const resendBtn = document.getElementById("resendBtn");
+        let countdownInterval;
+
+        async function sendCode() {
+            const phone = document.getElementById("phoneNumber").value.trim();
+            if (!phone) return showError("Please enter your phone number.");
+
+            showStatus("Sending OTP...", "info");
+
+            try {
+                const response = await fetch(`${API_BASE}/send-code`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ to: phone })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showSuccess("OTP sent successfully!");
+                    document.getElementById("step1").style.display = "none";
+                    document.getElementById("step2").style.display = "block";
+                    startTimer(180);
+                } else {
+                    showError(data.error || "Failed to send OTP.");
+                }
+            } catch (err) {
+                showError("Server not reachable. Make sure Flask is running.");
+            }
+        }
+
+        async function verifyCode() {
+            const phone = document.getElementById("phoneNumber").value.trim();
+            const code = document.getElementById("otpCode").value.trim();
+
+            if (!code) return showError("Please enter the OTP code.");
+
+            showStatus("Verifying OTP...", "info");
+
+            try {
+                const response = await fetch(`${API_BASE}/verify-code`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ to: phone, code })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    clearInterval(countdownInterval);
+                    showSuccess("Phone number verified successfully!");
+                    document.getElementById("step2").style.display = "none";
+                    const verified = document.getElementById("verified");
+                    verified.style.display = "block";
+                    verified.classList.add("fade-in");
+
+                    // Redirect to home after 3 seconds
+                    setTimeout(() => {
+                        window.location.href = "home.html"; // Change this to your actual home page
+                    }, 3000);
+                } else {
+                    showError(data.error || "Invalid or expired OTP.");
+                }
+            } catch (err) {
+                showError("Verification failed. Server not reachable.");
+            }
+        }
+
+        function startTimer(duration) {
+            clearInterval(countdownInterval);
+            let timeLeft = duration;
+
+            countdownInterval = setInterval(() => {
+                const minutes = Math.floor(timeLeft / 60);
+                const seconds = timeLeft % 60;
+                timerDiv.textContent = `Time remaining: ${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+                
+                if (--timeLeft < 0) {
+                    clearInterval(countdownInterval);
+                    timerDiv.textContent = "OTP expired ⏰";
+                    showError("OTP expired! Please request a new one.");
+                    resendBtn.style.display = "block";
+                }
+            }, 1000);
+        }
+
+        function resendOTP() {
+            resendBtn.style.display = "none";
+            document.getElementById("otpCode").value = "";
+            sendCode();
+        }
+
+        function showStatus(msg, type) {
+            statusDiv.className = "status " + (type === "error" ? "error" : type === "success" ? "success" : "");
+            statusDiv.textContent = msg;
+        }
+
+        function showError(msg) { showStatus(msg, "error"); }
+        function showSuccess(msg) { showStatus(msg, "success"); }
+    </script>
+</body>
+</html>

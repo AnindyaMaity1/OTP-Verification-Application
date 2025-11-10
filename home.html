@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Home | Verified Access</title>
+  
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+
+  <!-- FontAwesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    body {
+      margin: 0;
+      background: #ffffff;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .home-container {
+      background: linear-gradient(135deg, #f5e6ff, #fff5cc);
+      border: 2px solid #e0c3fc;
+      padding: 2.5rem;
+      width: 380px;
+      text-align: center;
+      box-shadow: 0 8px 18px rgba(0,0,0,0.1);
+      transition: all 0.3s ease-in-out;
+    }
+
+    h1 {
+      color: #7b2cbf;
+      margin-bottom: 1rem;
+    }
+
+    p {
+      font-size: 1.1rem;
+      color: #333;
+      margin-bottom: 1.5rem;
+    }
+
+    button {
+      background: #7b2cbf;
+      color: white;
+      border: none;
+      padding: 12px 18px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    button:hover {
+      background: #5a189a;
+    }
+
+    .icon {
+      font-size: 3rem;
+      color: #7b2cbf;
+      margin-bottom: 1rem;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="home-container">
+    <i class="fa-solid fa-house icon"></i>
+    <h1>Welcome Home!</h1>
+    <p>Your phone number has been successfully verified 🎉</p>
+    <button onclick="logout()">Logout</button>
+  </div>
+
+  <script>
+    function logout() {
+      // You can redirect or clear session here
+      window.location.href = "index.html"; // or OTP page
+    }
+  </script>
+
+</body>
+</html>
