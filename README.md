@@ -35,9 +35,8 @@ OTP-Verification/
 ├── app.py                # Flask backend
 ├── requirements.txt      # Python dependencies
 │
-├── templates/
-│   ├── index.html        # Main OTP verification page
-│   └── home.html         # Redirect page after verification
+├── index.html
+├── home.html
 │
 └── README.md             # Project documentation
 ```
